@@ -212,8 +212,13 @@ public class AIPath : MonoBehaviour {
 	  */
 	protected IEnumerator RepeatTrySearchPath () {
 		while (true) {
-			float v = TrySearchPath ();
-			yield return new WaitForSeconds (v);
+			if (Input.GetMouseButtonDown(0)) 
+			{
+				Debug.Log("RepeatTrySearchPath");
+				float v = TrySearchPath ();
+				yield return new WaitForSeconds (v);
+			}
+			yield return null;
 		}
 	}
 	
