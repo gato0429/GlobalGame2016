@@ -153,6 +153,7 @@ public class AIPath : MonoBehaviour {
 	  * */
 	protected virtual void Awake () {
 		seeker = GetComponent<Seeker>();
+		Debug.Log (seeker);
 		
 		//This is a simple optimization, cache the transform component lookup
 		tr = transform;
@@ -206,17 +207,47 @@ public class AIPath : MonoBehaviour {
 		//Make sure we receive callbacks when paths complete
 		seeker.pathCallback -= OnPathComplete;
 	}
-	
+
+	public void StopPath()
+	{
+		if (seeker != null && !seeker.IsDone()) seeker.GetCurrentPath().Error();
+		if (path != null) path.Release (this);
+		path = null;
+	}
+
+	void CastRay()
+	{
+		RaycastHit hit;
+		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+		if (Physics.Raycast (ray, out hit)) {
+			if (hit.collider != null && hit.collider.gameObject.name != "0") {
+				if (this.gameObject.name == hit.collider.gameObject.name) {
+					seeker.pathCallback += OnPathComplete;
+					canMove = true;
+					StopPath ();
+				} else {
+					seeker.pathCallback -= OnPathComplete;
+					canSearch = false;
+				}
+				Debug.Log ("Choque algo creo...");
+				Debug.Log (hit.collider.gameObject.name);
+			} else {
+				Debug.Log ("No choca ni un carajo");
+			}
+		}
+	}
+
 	/** Tries to search for a path every #repathRate seconds.
 	  * \see TrySearchPath
 	  */
 	protected IEnumerator RepeatTrySearchPath () {
 		while (true) {
-			if (Input.GetMouseButtonDown(0)) 
-			{
-				Debug.Log("RepeatTrySearchPath");
-				float v = TrySearchPath ();
-				yield return new WaitForSeconds (v);
+			if (Input.GetMouseButtonDown (0)) {
+				CastRay ();
+			} else {
+				if (Input.GetMouseButtonDown (1)) {
+					StopPath ();
+				}
 			}
 			yield return null;
 		}
